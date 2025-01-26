@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perusahaan Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+        
+        #chatbot {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 320px;
+            max-height: 450px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+            z-index: 1000;
+            margin-bottom: 2rem;
+        }
+        
+        #chat-header {
+            background-color: #0078d7;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        #chat-messages {
+            padding: 10px;
+            height: 350px;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .user {
+            justify-content: flex-end;
+            text-align: right;
+        }
+        
+        .user .bubble {
+            background-color: #0078d7;
+            color: white;
+            align-self: flex-end;
+        }
+        
+        .bot {
+            justify-content: flex-start;
+            text-align: left;
+        }
+        
+        .bot .bubble {
+            background-color: #eaeaea;
+            color: #333;
+        }
+        
+        .bubble {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 15px;
+            margin: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+        }
+        
+        #chat-input {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+        }
+        
+        #input-field {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        #send-btn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #send-btn:hover {
+            background-color: #007acc;
+        }
+        
+        #chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 130px;
+            height: 130px;
+            background: none;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1001;
+        }
+        
+        #chat-toggle img {
+            border-radius: 50%;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #chatbot {
+                bottom: 100px;
+                right: 20px;
+                width: 350px;
+                max-height: 650px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                overflow: hidden;
+                background-color: white;
+                display: none;
+                flex-direction: column;
+                animation: fadeIn 0.3s ease;
+                z-index: 1000;
+                margin-bottom: 4rem;
+            }
+            #chat-toggle {
+                width: 150px;
+                height: 150px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #chatbot {
+                bottom: 100px;
+                right: 20px;
+                width: 350px;
+                max-height: 650px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                overflow: hidden;
+                background-color: white;
+                display: none;
+                flex-direction: column;
+                animation: fadeIn 0.3s ease;
+                z-index: 1000;
+                margin-bottom: 4rem;
+            }
+            #chat-toggle {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button id="chat-toggle"><img src="logo-removebg-preview (1).png" alt="" id="chat-toggle"></button>
+
+    <div id="chatbot">
+        <div id="chat-header">AI Instantprintjkt</div>
+        <div id="chat-messages"></div>
+        <div id="chat-input">
+            <input type="text" id="input-field" placeholder="Tanyakan sesuatu...">
+            <button id="send-btn">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById("chat-messages");
+        const inputField = document.getElementById("input-field");
+        const sendButton = document.getElementById("send-btn");
+        const chatbot = document.getElementById("chatbot");
+        const chatToggle = document.getElementById("chat-toggle");
+
+        // Data tanya jawab tentang perusahaan
+        const faqData = [{
+            keywords: ["nama perusahaan", "bisnis", "apa nama perusahaan", "apa nama bisnis"],
+            response: "Nama perusahaan kami adalah Instantprintjkt."
+        }, {
+            keywords: ["layanan", "apa layanan", "produk"],
+            response: "Kami menyediakan produk seperti customize e-wallet card contoh nya E-money, brizi, flash, tapcash, dan ada juga dompet, flashdisk , dll ."
+        }, {
+            keywords: ["alamat", "lokasi", "dimana perusahaan", "letak", "jalan"],
+            response: "Kami berlokasi di Gang Kinur 2, Condet, Batu Ampar, Jakarta Timur."
+        }, {
+            keywords: ["hubungi", "kontak", "cara menghubungi"],
+            response: "Silakan cek halaman kontak di website kami. Anda juga bisa menghubungi kami melalui WhatsApp."
+        }, {
+            keywords: ["jam buka", "jam operasional", "buka jam berapa", "jam kerja", "kapan buka", "jam buka kantor", "jam operasional kantor", "jam layanan", "buka hari apa saja", "jam layanan tersedia"],
+            response: "Kami buka setiap hari dari pukul 08:00 hingga 20:00. Namun, kami selalu siap menjawab pertanyaan Anda 24 jam."
+        }, {
+            keywords: ["membantu", "bantu", "menolong", "nolong", "tolong"],
+            response: "Tentu! Saya siap membantu menjawab pertanyaan Anda mengenai Instantprintjkt."
+        }, {
+            keywords: ["owner", "ceo", "pemilik", "pemegang"],
+            response: "Owner dari instantprintjkt adalah Rizki Attamimi."
+        }, {
+            keywords: ["diskon", "promo", "ada promo", "potongan harga", "diskon hari ini", "penawaran khusus", "promo terbaru", "kode promo", "diskon apa saja", "voucher diskon"],
+            response: "Kami sering mengadakan promo menarik. Silakan cek Shopee dan Tokopedia kami untuk informasi terbaru."
+        }, {
+            keywords: ["custom", "desain custom", "bisa custom", "buat desain sendiri", "kustomisasi", "ubah desain", "desain sesuai kebutuhan", "layanan custom", "pesanan custom", "produk custom"],
+            response: "Kami menyediakan layanan desain custom sesuai dengan kebutuhan spesifik Anda."
+        }, {
+            keywords: ["Assalamualaikum", "assalamualaikum", "asslkm", "asalamualaikum"],
+            response: "Waalaikumsalam"
+        }, {
+            keywords: ["desain saya sendiri", "desain saya", "apakah saya bisa custom design saya sendiri", "cetak design sendiri", "design sendiri", "design saya sendiri"],
+            response: "Ya, kami menyediakan layanan desain custom untuk memenuhi kebutuhan Anda. Hubungi kami untuk informasi lebih lanjut."
+        }, {
+            keywords: ["kerjasama", "mitra", "kerjasama bisnis", "bekerja sama", "kemitraan"],
+            response: "Kami terbuka untuk kerjasama dan kemitraan bisnis. Silakan hubungi kami melalui email atau WhatsApp untuk diskusi lebih lanjut."
+        }, {
+            keywords: ["contoh desain", "template desain", "bisa lihat contoh", "contoh hasil cetak", "desain yang tersedia", "pilihan template", "bisa pilih desain", "contoh produk", "contoh hasil akhir", "contoh layanan"],
+            response: "Ya, Kami menyediakan berbagai contoh desain dan template yang dapat Anda pilih sesuai kebutuhan."
+        }, {
+            keywords: ["ngapain", "sedang apa", "lagi ngapain"],
+            response: "Saya sedang menunggu pertanyaan Anda terkait Instantprintjkt."
+        }, {
+            keywords: ["order", "beli", "pesan", "mesen"],
+            response: "Anda bisa memesan produk kami melalui Shopee dan Tokopedia dengan nama akun instantprint.jkt."
+        }, {
+            keywords: ["desain gratis", "bisa gratis desain", "desain tanpa biaya", "free design", "promo desain gratis", "layanan desain gratis", "desain free", "desain murah", "gratis buat desain", "tanpa biaya desain"],
+            response: "Ya, anda bebas memilih desain sesuai kebutuhan anda secara gratis hanya di instantprintjkt.com"
+        }, {
+            keywords: ["warna cetak", "pilihan warna", "warna apa saja", "cetak warna", "gradasi warna", "warna kustom", "warna premium", "hasil cetak warna", "warna CMYK", "warna RGB"],
+            response: "Kami menggunakan teknologi cetak dengan Mesin Mimaki UJF 3042 untuk hasil terbaik."
+        }, {
+            keywords: ["pengiriman", "kirim", "kirim barang"],
+            response: "Ya, kami melayani pengiriman ke seluruh Indonesia."
+        }, {
+            keywords: ["visi", "Visi", "misi", "Misi"],
+            response: "Visi dan misi kami adalah mewujudkan ide-ide pelanggan menjadi kenyataan dan menciptakan hasil terbaik."
+        }, {
+            keywords: ["halo", "hai", "spada", "hallo", "hello", "hi", "Hi"],
+            response: "Halo, saya siap membantu Anda menjawab pertanyaan terkait Instantprintjkt."
+        }, {
+            keywords: ["tanya", "mau tanya", "ingin tanya", "bertanya"],
+            response: "Silakan ajukan pertanyaan Anda mengenai Instantprintjkt. Saya siap membantu."
+        }, {
+            keywords: ["p", "P", "woi", "hey"],
+            response: "Ya, silakan tanyakan sesuatu terkait Instantprintjkt."
+        }, {
+            keywords: ["bahan", "material", "jenis bahan", "terbuat dari apa", "bahan apa yang digunakan"],
+            response: "Kami menggunakan bahan berkualitas tinggi seperti PVC, kulit sintetis, dan material premium lainnya untuk memastikan kepuasan pelanggan."
+        }, {
+            keywords: ["bisa konsultasi", "konsultasi desain", "butuh ide", "diskusi desain", "bantu pilih desain"],
+            response: "Ya, tim kami siap membantu Anda dalam konsultasi desain. Silakan hubungi kami melalui WhatsApp untuk diskusi lebih lanjut."
+        }, {
+            keywords: ["kabar", "sehat", "gimana hari kamu"],
+            response: "Saya Baik Baik saya dan saya siap menunggu pertanyaan dari anda :)"
+        }];
+
+
+        // Fungsi untuk mencocokkan pertanyaan pengguna dengan keyword
+        function findResponse(userMessage) {
+            userMessage = userMessage.toLowerCase();
+            for (const faq of faqData) {
+                if (faq.keywords.some(keyword => userMessage.includes(keyword))) {
+                    return faq.response;
+                }
+            }
+            return "Mohon maaf, saya tidak memiliki informasi tentang itu. Silakan tanyakan hal lain tentang perusahaan kami.";
+        }
+
+        // Fungsi untuk menambahkan pesan ke UI
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement("div");
+            const bubbleDiv = document.createElement("div");
+
+            messageDiv.classList.add("message", sender);
+            bubbleDiv.classList.add("bubble");
+            bubbleDiv.textContent = message;
+
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll otomatis ke bawah
+        }
+
+        // Fungsi untuk menangani pesan pengguna
+        function handleUserMessage() {
+            const userMessage = inputField.value.trim();
+            if (!userMessage) return;
+
+            // Tambahkan pesan pengguna ke UI
+            addMessage(userMessage, "user");
+
+            // Cari dan tampilkan respons
+            const botResponse = findResponse(userMessage);
+            setTimeout(() => {
+                addMessage(botResponse, "bot");
+            }, 500); // Tambahkan jeda untuk efek realistis
+
+            inputField.value = ""; // Bersihkan input
+        }
+
+        // Event listener untuk tombol kirim
+        sendButton.addEventListener("click", handleUserMessage);
+
+        // Event listener untuk tombol Enter
+        inputField.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") handleUserMessage();
+        });
+
+        // Event listener untuk toggle chatbot
+        chatToggle.addEventListener("click", () => {
+            if (chatbot.style.display === "none" || chatbot.style.display === "") {
+                chatbot.style.display = "flex";
+            } else {
+                chatbot.style.display = "none";
+            }
+        });
+    </script>
+</body>
+
+</html>
